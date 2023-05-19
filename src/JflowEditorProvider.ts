@@ -39,6 +39,55 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
 
         let lastRemove: null | Thenable<any> = null;
 
+        let hanldeRemove = (() => {
+            let nodesRemove: string[] = [];
+            let edgesRemove: string[] = [];
+            let start = false;
+            return (e: { action: "remove node" | "remove edge", id: string }) => {
+                if (e.action === "remove node") {
+                    nodesRemove.push(e.id);
+                } else {
+                    edgesRemove.push(e.id);
+                }
+                if (start === false) {
+                    start = true;
+                    setTimeout(() => {
+                        if (lastRemove) {
+                            lastRemove.then(() => {
+                                removeIt();
+                            });
+                            return;
+                        } else {
+                            removeIt();
+                        }
+                    }, 10);
+                }
+            }
+            function removeIt() {
+                let parsedDocument = JSON.parse(document.getText());
+                for (let i = 0; i < nodesRemove.length; i++) {
+                    let id = nodesRemove[i];
+                    let nodeIndex = parsedDocument.nodes.findIndex((n: { id: string }) => n.id === id);
+                    parsedDocument.nodes.splice(nodeIndex, 1);
+                }
+                for (let i = 0; i < edgesRemove.length; i++) {
+                    let id = edgesRemove[i];
+                    let edgeIndex = parsedDocument.edges.findIndex((e: { id: string }) => e.id === id);
+                    parsedDocument.edges.splice(edgeIndex, 1);
+                }
+                nodesRemove = [];
+                edgesRemove = [];
+                start = false;
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                    document.uri,
+                    new vscode.Range(0, 0, document.lineCount, 0),
+                    JSON.stringify(parsedDocument, null, 4)
+                );
+                lastRemove = vscode.workspace.applyEdit(edit);
+            }
+        })();
+
         // receive message from webview
         webviewPanel.webview.onDidReceiveMessage((e: WebviewMessage) => {
             if (e.action === "update nodes") {
@@ -67,29 +116,7 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
                 );
                 vscode.workspace.applyEdit(edit);
             } else if (e.action === "remove edge" || e.action === "remove node") {
-                let removeIt = () => {
-                    let parsedDocument = JSON.parse(document.getText());
-                    let targets = e.action === "remove edge" ? parsedDocument.edges : parsedDocument.nodes;
-
-                    let index = targets.findIndex((t: { id: string }) => t.id === e.id);
-                    targets.splice(index, 1);
-
-                    let edit = new vscode.WorkspaceEdit();
-                    edit.replace(
-                        document.uri,
-                        new vscode.Range(0, 0, document.lineCount, 0),
-                        JSON.stringify(parsedDocument, null, 4)
-                    );
-                    lastRemove = vscode.workspace.applyEdit(edit);
-                }
-                if (lastRemove) {
-                    lastRemove.then(() => {
-                        removeIt();
-                    });
-                    return;
-                } else {
-                    removeIt();
-                }
+                hanldeRemove(e);
             }
         })
 
