@@ -7,6 +7,9 @@ type WebviewMessage = {
 } | {
     action: "update edges",
     edges: object
+} | {
+    action: "remove node" | "remove edge",
+    id: string
 }
 
 export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
@@ -24,6 +27,9 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
     private static readonly viewType = "jflow.view";
 
     public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): Promise<void> {
+        let debugPanel = vscode.window.createOutputChannel("Jflow Debug");
+        debugPanel.show();
+
         // where react and other scripts that control the webview comes in
         let html = getHtml();
 
@@ -31,12 +37,18 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
             enableScripts: true,
         }
 
+        let lastRemove: null | Thenable<any> = null;
+
         // receive message from webview
         webviewPanel.webview.onDidReceiveMessage((e: WebviewMessage) => {
             if (e.action === "update nodes") {
-                let edit = new vscode.WorkspaceEdit();
                 let parsedDocument = JSON.parse(document.getText());
+                if (JSON.stringify(parsedDocument.nodes) === JSON.stringify(e.nodes)) {
+                    return;
+                }
                 parsedDocument.nodes = e.nodes;
+
+                let edit = new vscode.WorkspaceEdit();
                 edit.replace(
                     document.uri,
                     new vscode.Range(0, 0, document.lineCount, 0),
@@ -44,15 +56,40 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
                 );
                 vscode.workspace.applyEdit(edit);
             } else if (e.action === "update edges") {
-                let edit = new vscode.WorkspaceEdit();
                 let parsedDocument = JSON.parse(document.getText());
                 parsedDocument.edges = e.edges;
+
+                let edit = new vscode.WorkspaceEdit();
                 edit.replace(
                     document.uri,
                     new vscode.Range(0, 0, document.lineCount, 0),
                     JSON.stringify(parsedDocument, null, 4)
                 );
                 vscode.workspace.applyEdit(edit);
+            } else if (e.action === "remove edge" || e.action === "remove node") {
+                let removeIt = () => {
+                    let parsedDocument = JSON.parse(document.getText());
+                    let targets = e.action === "remove edge" ? parsedDocument.edges : parsedDocument.nodes;
+
+                    let index = targets.findIndex((t: { id: string }) => t.id === e.id);
+                    targets.splice(index, 1);
+
+                    let edit = new vscode.WorkspaceEdit();
+                    edit.replace(
+                        document.uri,
+                        new vscode.Range(0, 0, document.lineCount, 0),
+                        JSON.stringify(parsedDocument, null, 4)
+                    );
+                    lastRemove = vscode.workspace.applyEdit(edit);
+                }
+                if (lastRemove) {
+                    lastRemove.then(() => {
+                        removeIt();
+                    });
+                    return;
+                } else {
+                    removeIt();
+                }
             }
         })
 

@@ -8,6 +8,13 @@ function updateNodes(nodes: Node[]) {
     });
 }
 
+function removeNode(id: string) {
+    vscode.postMessage({
+        action: "remove node",
+        id
+    });
+}
+
 function updateEdges(edges: Edge[]) {
     vscode.postMessage({
         action: "update edges",
@@ -15,7 +22,16 @@ function updateEdges(edges: Edge[]) {
     });
 }
 
+function removeEdge(id: string) {
+    vscode.postMessage({
+        action: "remove edge",
+        id
+    });
+}
+
 export {
     updateNodes,
-    updateEdges
+    removeNode,
+    updateEdges,
+    removeEdge
 }

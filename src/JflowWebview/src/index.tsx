@@ -23,7 +23,6 @@ window.addEventListener("message", e => {
     if (!nodesObs) {
         nodesObs = observable(nodes);
     } else {
-        console.log("update node", nodes);
         nodesObs.set(nodes);
     }
     if (!edgesObs) {

@@ -4,7 +4,7 @@ import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Node, Edg
 import { edgesObs, nodesObs } from ".";
 import { produce } from "immer";
 import { useSelector } from "@legendapp/state/react"
-import { updateNodes, updateEdges } from "./utils/undoable";
+import { updateNodes, updateEdges, removeEdge, removeNode } from "./utils/undoable";
 
 interface AppInterface {
     error: boolean
@@ -41,11 +41,17 @@ export default function App({ error }: AppInterface) {
                             if (change.dragging === false) {
                                 updateNodes(nodes);
                             }
+                        } else if (change.type === "remove") {
+                            removeNode(change.id);
                         }
                     })
                 }}
                 onEdgesChange={changes => {
-                    
+                    changes.forEach(change => {
+                        if (change.type === "remove") {
+                            removeEdge(change.id);
+                        }
+                    })
                 }}
                 onConnect={connnection => {
                     updateEdges(addEdge(connnection, edges))
