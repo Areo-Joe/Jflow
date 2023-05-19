@@ -28,13 +28,15 @@
   "scripts": {
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
-    "watch-webview": "cd src/JflowWebview && npm run watch",
+    "watch-webview": "cd src/JflowWebview && yarn run watch",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
+    "intall-webview": "cd src/JflowWebview && yarn install",
+    "install-all": "yarn install && yarn run install-webview",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
