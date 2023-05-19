@@ -1,19 +1,19 @@
 import React, { useCallback } from "react"
-import { Box, Center, Text } from "@mantine/core";
+import { Box } from "@mantine/core";
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Node, Edge } from "reactflow"
-import { atom, useAtom } from "jotai";
-import { edgesAtom, nodesAtom } from ".";
+import { edgesObs, nodesObs } from ".";
 import { produce } from "immer";
+import { useSelector } from "@legendapp/state/react"
+import { updateNodes } from "./utils/undoable";
 
 interface AppInterface {
     error: boolean
 }
 
-let nodes = atom(1);
-
 export default function App({ error }: AppInterface) {
-    let [nodes, setNodes] = useAtom(nodesAtom!);
-    let [edges, setEdges] = useAtom(edgesAtom!);
+    console.log("render")
+    let nodes = useSelector(() => nodesObs!.get());
+    let edges = useSelector(() => edgesObs!.get());
 
     // const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     // const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -30,17 +30,17 @@ export default function App({ error }: AppInterface) {
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={changes => {
-                    console.log(changes.map(x => x.type).join())
                     changes.forEach(change => {
                         if (change.type === "position") {
-                            console.log(change.dragging)
-                            setNodes(ns =>
-                                produce(ns, ns => {
-                                    if (change.position) {
-                                        ns.find(n => n.id === change.id)!.position = change.position;
-                                    }
-                                })
-                            );
+                            if (change.position) {
+                                nodesObs!.set(nodes => produce(nodes, draftNodes => {
+                                    let index = draftNodes.findIndex(x => x.id === change.id);
+                                    draftNodes[index].position = change.position!;
+                                }))
+                            }
+                            if (change.dragging === false) {
+                                updateNodes(nodesObs!.get());
+                            }
                         }
                     })
                 }}

@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@emotion/react": "^11.11.0",
+    "@legendapp/state": "^1.0.0",
     "@mantine/core": "^6.0.11",
     "@mantine/form": "^6.0.11",
     "@mantine/hooks": "^6.0.11",
@@ -21,7 +22,6 @@
     "@types/react-dom": "^18.2.4",
     "css-loader": "^6.7.3",
     "immer": "^10.0.2",
-    "jotai": "^2.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.7.2",

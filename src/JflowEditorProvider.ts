@@ -1,6 +1,11 @@
 import * as vscode from "vscode"
 import JflowScript from "./JflowWebview/JflowScript"
 
+type WebviewMessage = {
+    action: "update nodes",
+    nodes: object
+}
+
 export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
     // register a new custom editor
     public static register(context: vscode.ExtensionContext) {
@@ -24,8 +29,18 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
         }
 
         // receive message from webview
-        webviewPanel.webview.onDidReceiveMessage(e => {
-            
+        webviewPanel.webview.onDidReceiveMessage((e: WebviewMessage) => {
+            if (e.action === "update nodes") {
+                let edit = new vscode.WorkspaceEdit();
+                let parsedDocument = JSON.parse(document.getText());
+                parsedDocument.nodes = e.nodes;
+                edit.replace(
+                    document.uri,
+                    new vscode.Range(0, 0, document.lineCount, 0),
+                    JSON.stringify(parsedDocument, null, 4)
+                );
+                vscode.workspace.applyEdit(edit);
+            }
         })
 
         webviewPanel.onDidChangeViewState(e => {
