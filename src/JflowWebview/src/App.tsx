@@ -4,14 +4,13 @@ import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Node, Edg
 import { edgesObs, nodesObs } from ".";
 import { produce } from "immer";
 import { useSelector } from "@legendapp/state/react"
-import { updateNodes } from "./utils/undoable";
+import { updateNodes, updateEdges } from "./utils/undoable";
 
 interface AppInterface {
     error: boolean
 }
 
 export default function App({ error }: AppInterface) {
-    console.log("render")
     let nodes = useSelector(() => nodesObs!.get());
     let edges = useSelector(() => edgesObs!.get());
 
@@ -30,6 +29,7 @@ export default function App({ error }: AppInterface) {
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={changes => {
+                    console.log(...changes)
                     changes.forEach(change => {
                         if (change.type === "position") {
                             if (change.position) {
@@ -39,13 +39,17 @@ export default function App({ error }: AppInterface) {
                                 }))
                             }
                             if (change.dragging === false) {
-                                updateNodes(nodesObs!.get());
+                                updateNodes(nodes);
                             }
                         }
                     })
                 }}
-                onEdgesChange={(...p: any) => console.log(p)}
-                onConnect={(...p: any) => console.log(p)} />
+                onEdgesChange={changes => {
+                    
+                }}
+                onConnect={connnection => {
+                    updateEdges(addEdge(connnection, edges))
+                }} />
         </Box>
     )
 }

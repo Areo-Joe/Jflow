@@ -4,6 +4,9 @@ import JflowScript from "./JflowWebview/JflowScript"
 type WebviewMessage = {
     action: "update nodes",
     nodes: object
+} | {
+    action: "update edges",
+    edges: object
 }
 
 export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
@@ -34,6 +37,16 @@ export class JflowEditorProvider implements vscode.CustomTextEditorProvider {
                 let edit = new vscode.WorkspaceEdit();
                 let parsedDocument = JSON.parse(document.getText());
                 parsedDocument.nodes = e.nodes;
+                edit.replace(
+                    document.uri,
+                    new vscode.Range(0, 0, document.lineCount, 0),
+                    JSON.stringify(parsedDocument, null, 4)
+                );
+                vscode.workspace.applyEdit(edit);
+            } else if (e.action === "update edges") {
+                let edit = new vscode.WorkspaceEdit();
+                let parsedDocument = JSON.parse(document.getText());
+                parsedDocument.edges = e.edges;
                 edit.replace(
                     document.uri,
                     new vscode.Range(0, 0, document.lineCount, 0),

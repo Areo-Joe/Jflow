@@ -1,4 +1,4 @@
-import { Node } from "reactflow";
+import { Edge, Node } from "reactflow";
 import { vscode } from "..";
 
 function updateNodes(nodes: Node[]) {
@@ -8,6 +8,14 @@ function updateNodes(nodes: Node[]) {
     });
 }
 
+function updateEdges(edges: Edge[]) {
+    vscode.postMessage({
+        action: "update edges",
+        edges
+    });
+}
+
 export {
-    updateNodes
+    updateNodes,
+    updateEdges
 }

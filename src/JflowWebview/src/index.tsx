@@ -19,7 +19,7 @@ export let edgesObs: null | ObservableArray<Edge[]> = null;
 window.addEventListener("message", e => {
     let nodes = JSON.parse(e.data.text).nodes as Node[];
     let edges = JSON.parse(e.data.text).edges as Edge[];
-    console.log("yes")
+    
     if (!nodesObs) {
         nodesObs = observable(nodes);
     } else {
