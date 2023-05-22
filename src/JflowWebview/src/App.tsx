@@ -6,9 +6,14 @@ import { useSelector } from "@legendapp/state/react"
 import { useHandleDrop } from "./utils/useHandleDrop";
 import SideBar from "./components/Sidebar";
 import { useHandleBasicInteraction } from "./utils/useHandleBasicInteraction";
+import LabelNode from "./components/customNodes/labelNode";
 
 interface AppInterface {
     error: boolean
+}
+
+let nodeType = {
+    labelNode: LabelNode
 }
 
 export default function App({ error }: AppInterface) {
@@ -44,6 +49,7 @@ export default function App({ error }: AppInterface) {
                     onInit={getInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
+                    nodeTypes={nodeType}
                 />
             </Box>
         </Box>

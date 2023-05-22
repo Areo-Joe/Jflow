@@ -39,6 +39,7 @@ function useHandleDrop() {
             id: uuidv4(),
             position,
             data: { label: `${type} node` },
+            type: "labelNode"
         };
         updateNodes(nodes.concat(newNode))
     }, [reactFlowInstance, nodes]);
